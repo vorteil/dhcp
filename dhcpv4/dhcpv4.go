@@ -137,15 +137,11 @@ func GenerateTransactionID() (TransactionID, error) {
 // See also NewDiscovery, NewOffer, NewRequest, NewAcknowledge, NewInform and
 // NewRelease .
 func New(modifiers ...Modifier) (*DHCPv4, error) {
-	xid, err := GenerateTransactionID()
-	if err != nil {
-		return nil, err
-	}
+
 	d := DHCPv4{
 		OpCode:        OpcodeBootRequest,
 		HWType:        iana.HWTypeEthernet,
 		HopCount:      0,
-		TransactionID: xid,
 		NumSeconds:    0,
 		Flags:         0,
 		ClientIPAddr:  net.IPv4zero,
@@ -157,6 +153,15 @@ func New(modifiers ...Modifier) (*DHCPv4, error) {
 	for _, mod := range modifiers {
 		mod(&d)
 	}
+
+	if d.TransactionID[0] == 0 {
+		xid, err := GenerateTransactionID()
+		if err != nil {
+			return nil, err
+		}
+		d.TransactionID = xid
+	}
+
 	return &d, nil
 }
 
